@@ -8,7 +8,12 @@
 
 package io.pleo.antaeus.core.external
 
+import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
+import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
+import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.models.Invoice
+import java.io.File
+import java.lang.StringBuilder
 
 interface PaymentProvider {
     /*
@@ -24,5 +29,21 @@ interface PaymentProvider {
           `NetworkException`: when a network error happens.
      */
 
-    fun charge(invoice: Invoice): Boolean
+    fun charge(invoice: Invoice): Boolean{
+        File("PaymentFailures").bufferedWriter()
+        val failed = StringBuilder()
+        failed.append("List of failed billings below:")
+    try {
+
+    }catch (Exception: CustomerNotFoundException){
+
+    }catch (Exception: CurrencyMismatchException){
+
+    }catch (Exception:NetworkException){
+
+    }
+
+
+        return true
+    }
 }

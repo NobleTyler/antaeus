@@ -11,6 +11,7 @@ import io.pleo.antaeus.core.exceptions.EntityNotFoundException
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import mu.KotlinLogging
+import java.net.URL
 
 private val logger = KotlinLogging.logger {}
 
@@ -42,10 +43,6 @@ class AntaeusRest (
     init {
         // Set up URL endpoints for the rest app
         app.routes {
-            path("/"){
-                //Open test page on start
-                //URL : /
-            }
            path("rest") {
                // Route to check whether the app is running
                // URL: /rest/health

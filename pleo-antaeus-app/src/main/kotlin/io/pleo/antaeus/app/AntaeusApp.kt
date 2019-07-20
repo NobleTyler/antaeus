@@ -23,6 +23,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import setupInitialData
 import java.sql.Connection
+import kotlin.system.exitProcess
 
 fun main() {
     // The tables to create in the database.
@@ -63,5 +64,22 @@ fun main() {
         invoiceService = invoiceService,
         customerService = customerService
     ).run()
+    userCom()
 }
-
+//Function is used to trigger events
+fun userCom(){
+    print("Alpha mode initialized. \n Please enter a command \n (T)-test (A)abort:" )
+    var uinput: String = readLine()!!.toString().toUpperCase()
+    if(uinput == "T"){
+        //TODO make it so it needs to pay people now
+        println("Payments completed, thank you for using Pleo!")
+    }else if(uinput =="A"){
+        println("Admin has shutdown the server.")
+        exitProcess(0)
+    }
+    else{
+        println("I'm sorry that command is unavailable at the moment.")
+        userCom()
+    }
+    //TODO add functionality so you can't call it over and over again
+}
