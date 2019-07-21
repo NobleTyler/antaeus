@@ -8,12 +8,10 @@
 
 package io.pleo.antaeus.core.external
 
-import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
-import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
-import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.models.Invoice
+import mu.KLoggable
+import mu.KotlinLogging
 import java.io.File
-import java.lang.StringBuilder
 
 interface PaymentProvider {
     /*
@@ -30,20 +28,12 @@ interface PaymentProvider {
      */
 
     fun charge(invoice: Invoice): Boolean{
-        File("PaymentFailures").bufferedWriter()
-        val failed = StringBuilder()
-        failed.append("List of failed billings below:")
-    try {
 
-    }catch (Exception: CustomerNotFoundException){
-
-    }catch (Exception: CurrencyMismatchException){
-
-    }catch (Exception:NetworkException){
-
-    }
+        var status = true
+                //Write logs to file so they can be shared with non-technical staff
 
 
-        return true
+
+        return status
     }
 }
