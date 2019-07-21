@@ -23,7 +23,9 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import setupInitialData
 import java.sql.Connection
+import java.time.LocalDate
 import kotlin.system.exitProcess
+
 
 fun main() {
     // The tables to create in the database.
@@ -31,17 +33,17 @@ fun main() {
 
     // Connect to the database and create the needed tables. Drop any existing data.
     val db = Database
-        .connect("jdbc:sqlite:/tmp/data.db", "org.sqlite.JDBC")
-        .also {
-            TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
-            transaction(it) {
-                addLogger(StdOutSqlLogger)
-                // Drop all existing tables to ensure a clean slate on each run
-                SchemaUtils.drop(*tables)
-                // Create all tables
-                SchemaUtils.create(*tables)
+            .connect("jdbc:sqlite:/tmp/data.db", "org.sqlite.JDBC")
+            .also {
+                TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
+                transaction(it) {
+                    addLogger(StdOutSqlLogger)
+                    // Drop all existing tables to ensure a clean slate on each run
+                    SchemaUtils.drop(*tables)
+                    // Create all tables
+                    SchemaUtils.create(*tables)
+                }
             }
-        }
 
     // Set up data access layer.
     val dal = AntaeusDal(db = db)
@@ -61,25 +63,43 @@ fun main() {
 
     // Create REST web service
     AntaeusRest(
-        invoiceService = invoiceService,
-        customerService = customerService
+            invoiceService = invoiceService,
+            customerService = customerService
     ).run()
-    userCom()
+    userCom(billingService)
 }
 //Function is used to trigger events
-fun userCom(){
-    print("Alpha mode initialized. \n Please enter a command \n (T)-test (A)abort:" )
+fun userCom(billingService:BillingService){
+    print("Alpha mode initialized. \n Please enter a command \n (N)-Normal Mode (T)-test (A)abort:" )
     var uinput: String = readLine()!!.toString().toUpperCase()
     if(uinput == "T"){
-        //TODO make it so it needs to pay people now
-        println("Payments completed, thank you for using Pleo!")
+        billingService.chargeSignal()
     }else if(uinput =="A"){
         println("Admin has shutdown the server.")
         exitProcess(0)
+    }else if(uinput == "N"){
+        normalMode(billingService)
     }
     else{
         println("I'm sorry that command is unavailable at the moment.")
-        userCom()
+        userCom(billingService)
     }
-    //TODO add functionality so you can't call it over and over again
+}
+//Function iterates through every day and bills on last day
+fun normalMode(billingService: BillingService){
+    var day = LocalDate.now()
+    var year = true
+    while( year == true) {
+        println("Today is $day. ")
+        if (day.dayOfMonth.equals(day.lengthOfMonth())) {
+            billingService.chargeSignal()
+        }
+        day = day.plusDays(1)
+        Thread.sleep(1000)
+        if(day.dayOfYear.equals(day.lengthOfYear())){
+            year = false
+            userCom(billingService)
+        }
+    }
+
 }

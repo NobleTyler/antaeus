@@ -23,14 +23,18 @@ class BillingService(private val dal: AntaeusDal):PaymentProvider {
         failed.append("List of failed billings below:")
         success.append("List of successful billings below")
         try {
-            println("Charge complete")
             success.append(it.id,it.customerId)
         }catch (e :Exception){
-            println("Charge incomplete!")
             //failed.append(invoice.id,e.cause)
             status = false
         }
        }
+
+       if(status)
+           println("Charge complete")
+        else
+           println("Charge incomplete!")
+
         return status
     }
 

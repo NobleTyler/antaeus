@@ -30,7 +30,6 @@ interface PaymentProvider {
     fun charge(invoice: Invoice): Boolean{
 
         var status = true
-                //Write logs to file so they can be shared with non-technical staff
 
 
 
