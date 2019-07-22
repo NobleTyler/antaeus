@@ -5,38 +5,31 @@ import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.data.AntaeusDal
+import io.pleo.antaeus.models.Invoice
 import mu.KLogger
 import mu.KotlinLogging
 import java.io.File
 
-class BillingService(private val dal: AntaeusDal):PaymentProvider {
+class BillingService( dal: AntaeusDal):PaymentProvider {
     private val logger = KotlinLogging.logger("billingService")
     private val invSer = InvoiceService(dal)
-    private val cusSer =CustomerService(dal)
 
-    var invoices = invSer.fetchAll().toList()
+    val cusSer = CustomerService(dal = dal)
     var customers = cusSer.fetchAll().toList()
-
+    var invoices = invSer.fetchAll().toList()
     fun chargeSignal():Boolean{
         var status = true
         var success = StringBuilder()
         var failed = StringBuilder()
 
-        File("PaymentFailures.txt").bufferedWriter()
-        File("PaymentSucess.txt").bufferedWriter()
+       var pf= File("PaymentFailures.txt").bufferedWriter()
+        var ps =File("PaymentSucess.txt").bufferedWriter()
         failed.append("List of failed billings below:")
         success.append("List of successful billings below")
         invoices.forEach{
             try {
-                var custHold = it.customerId
-                var custCur = it.amount.currency
-                var custID= customers.indexOfFirst { it.id == custHold && it.currency ==custCur }
-                if(custID != -1)
-                    success.append(it.id,it.customerId)
-                else {
-                    failed.append(it.id, it.customerId)
-                    status = false
-                }
+               charge(it,customers)
+               success.append(it.id,it.customerId)
             }
             catch (e :CurrencyMismatchException){
                 failed.append(it.id,it.customerId)
@@ -56,16 +49,14 @@ class BillingService(private val dal: AntaeusDal):PaymentProvider {
                 logger.error { "${e.cause}" }
             }
         }
-
         if(status)
             println("Charge complete")
         else
             println("Not all charges complete! \n Please see error files to find which transactions failed.")
 
-
+        pf.write(failed.toString())
+        ps.write(success.toString())
         return status
     }
-
-
 
 }

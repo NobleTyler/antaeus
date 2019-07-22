@@ -8,10 +8,12 @@
 
 package io.pleo.antaeus.core.external
 
+import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
+import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
+import io.pleo.antaeus.core.exceptions.NetworkException
+import io.pleo.antaeus.core.services.CustomerService
+import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
-import mu.KLoggable
-import mu.KotlinLogging
-import java.io.File
 
 interface PaymentProvider {
     /*
@@ -26,13 +28,16 @@ interface PaymentProvider {
           `CurrencyMismatchException`: when the currency does not match the customer account.
           `NetworkException`: when a network error happens.
      */
-
-    fun charge(invoice: Invoice): Boolean{
-
+    fun  charge(invoice:Invoice,customers:List<Customer>): Boolean{
         var status = true
+        var customer = customers.get(invoice.customerId)
 
-
-
-        return status
+        if(!customers.contains(customer)) {
+        throw CustomerNotFoundException(customer.id)
+        }
+        else if(!invoice.amount.currency.equals(customer.currency)){
+            throw CurrencyMismatchException(invoiceId = invoice.id,customerId = customer.id)
+        }else if(true)//TODO use kotlins network status checker
+            return status
     }
 }
