@@ -11,9 +11,11 @@ package io.pleo.antaeus.core.external
 import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
-import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
+import io.pleo.antaeus.models.InvoiceStatus
+import java.lang.Exception
+import java.net.NetworkInterface
 
 interface PaymentProvider {
     /*
@@ -28,16 +30,22 @@ interface PaymentProvider {
           `CurrencyMismatchException`: when the currency does not match the customer account.
           `NetworkException`: when a network error happens.
      */
-    fun  charge(invoice:Invoice,customers:List<Customer>): Boolean{
+    fun  charge(invoice:Invoice,customers:List<Customer>): Boolean {
         var status = true
-        var customer = customers.get(invoice.customerId)
-
-        if(!customers.contains(customer)) {
-        throw CustomerNotFoundException(customer.id)
+        val customer = customers.get(invoice.customerId)
+        var networkError = false //TODO actually detect network errors
+        if (!customers.contains(customer)) {
+            throw CustomerNotFoundException(customer.id)
+        } else if (!invoice.amount.currency.equals(customer.currency)) {
+            throw CurrencyMismatchException(invoiceId = invoice.id, customerId = customer.id)
+        } else if (networkError) {
+            throw NetworkException()
+        } else if(invoice.status.equals(InvoiceStatus.PAID)){
+            status = false
         }
-        else if(!invoice.amount.currency.equals(customer.currency)){
-            throw CurrencyMismatchException(invoiceId = invoice.id,customerId = customer.id)
-        }else if(true)//TODO use kotlins network status checker
-            return status
+        else{
+            invoice.status.apply { InvoiceStatus.PAID }
+        }
+        return status
     }
 }

@@ -10,26 +10,24 @@ import mu.KLogger
 import mu.KotlinLogging
 import java.io.File
 
-class BillingService( dal: AntaeusDal):PaymentProvider {
+class BillingService(private val invoiceService: InvoiceService,private val customerService: CustomerService):PaymentProvider {
     private val logger = KotlinLogging.logger("billingService")
-    private val invSer = InvoiceService(dal)
 
-    val cusSer = CustomerService(dal = dal)
-    var customers = cusSer.fetchAll().toList()
-    var invoices = invSer.fetchAll().toList()
+    var customers = customerService.fetchAll().toList()
+    var invoices = invoiceService.fetchAll().toList()
     fun chargeSignal():Boolean{
         var status = true
         var success = StringBuilder()
         var failed = StringBuilder()
 
-       var pf= File("PaymentFailures.txt").bufferedWriter()
-        var ps =File("PaymentSucess.txt").bufferedWriter()
+        var pf= File("PaymentFailures.txt").bufferedWriter()
+        var ps =File("PaymentSuccess.txt").bufferedWriter()
         failed.append("List of failed billings below:")
         success.append("List of successful billings below")
         invoices.forEach{
             try {
-               charge(it,customers)
-               success.append(it.id,it.customerId)
+                charge(it,customers)
+                success.append(it.id,it.customerId)
             }
             catch (e :CurrencyMismatchException){
                 failed.append(it.id,it.customerId)
