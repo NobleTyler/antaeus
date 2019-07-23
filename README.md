@@ -53,3 +53,23 @@ Happy hacking 😁!
 * [kotlin-logging](https://github.com/MicroUtils/kotlin-logging) - Simple logging framework for Kotlin
 * [JUnit 5](https://junit.org/junit5/) - Testing framework
 * [Mockk](https://mockk.io/) - Mocking library
+
+## Design Decisions
+
+### Admin Interaction
+Admin interaction is done through the console in this iteration. 
+While alternatives like using restful routes or creating a front end could be used the CLI was both quick to implement and decidedly more secure.
+The console is likely only seen by administrators and it us unlikely somebody accidentally charge by going to a Restful-URL (I'm looking at you chrome autocomplete) or Front-End interface.
+As well there are modes for easily shutting down the server, as well as testing charges and performing Normal operations where users are charged on a per month basis.
+>TLDR; I used a CLI for safety reasons and ease of development.
+### Payment Provider
+Payment provider is an abstract class which is the parent of BillingTest. The purpose of which serves to deal with error handling for customer/invoice
+interactions. As any abstract class it provides a template for things to look out for in charges and can later be used to possibly implement refunds or different types of customer/invoice interactions.
+>TLDR: It's an abstract class, implements charge and throws exceptions. Very bare-bones.
+### Billing Service
+BillingService was something I originally wanted to keep inline with other services by inheriting the DAL(Data Access Layer) 
+. However this is already covered in the main so I later found that it was best to take in the two required services into the BillingService.
+The billing service itself is used mainly in normal operation to iterate over the list of invoices and call a charge function on each customer.
+It has added benefits of catching thrown exceptions as well and increased error reporting. Including a file that can be handed to teams who may be less technically savy. 
+>TLDR; Billing Service inherits from Payment Provider. But it calls charge on a real list of invoices and customers. Has better error handling.
+### Testing 

@@ -10,34 +10,29 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class BillingServiceTest {
-    /*private val dal = mockk<AntaeusDal> {
+    private var dal = mockk<AntaeusDal> {
         every { fetchCustomer(404) } returns null
-    }*/
-    private var dal = mockk<AntaeusDal>{}
-    private var invoice = Invoice(id = 1,customerId = 1,amount = Money(131.66.toBigDecimal(),currency = Currency.DKK),status = InvoiceStatus.PENDING)
-    lateinit var billingService : BillingService
-    lateinit var customerService: CustomerService
-    lateinit var invoiceService: InvoiceService
-
+    }
+    private val customerService = CustomerService(dal = dal)
+    private val invoiceService = InvoiceService(dal=dal)
+    private var billingService =BillingService(invoiceService,customerService)
+    //TODO figure out why the DAL is unable to fetch anything
     @Test
     fun `will throw if billing is not found`() {
         assertThrows<CustomerNotFoundException> {
-
             billingService.chargeSignal()
         }
     }
     @Test
     fun `CurrencyMismatchException test`(){
         assertThrows<CurrencyMismatchException> {
-
-            billingService.charge(invoice,customers = billingService.customers )
+            val invoice = Invoice(id = 1,customerId = 1,amount = Money(131.66.toBigDecimal(),currency = Currency.SEK),status = InvoiceStatus.PENDING)
+            billingService.charge(invoice,customers = customerService.fetchAll())
         }
     }
     @Test
     fun  `CustomerNotFoundException test`(){
         assertThrows<CustomerNotFoundException> {
-            invoice= Invoice(id = 1,customerId = -1,amount = Money(131.66.toBigDecimal(),currency = Currency.DKK),status = InvoiceStatus.PENDING)
-            billingService.charge(invoice,customers = billingService.customers )
         }
     }
 }
