@@ -70,6 +70,9 @@ interactions. As any abstract class it provides a template for things to look ou
 BillingService was something I originally wanted to keep inline with other services by inheriting the DAL(Data Access Layer) 
 . However this is already covered in the main so I later found that it was best to take in the two required services into the BillingService.
 The billing service itself is used mainly in normal operation to iterate over the list of invoices and call a charge function on each customer.
-It has added benefits of catching thrown exceptions as well and increased error reporting. Including a file that can be handed to teams who may be less technically savy. 
->TLDR; Billing Service inherits from Payment Provider. But it calls charge on a real list of invoices and customers. Has better error handling.
+It has added benefits of catching thrown exceptions as well and increased error reporting. 
+>TLDR; Billing Service inherits from Payment Provider. 
 ### Testing 
+Testing was all done in Junit. Originally I had implemented testing such that it wouldn't need mocks and would just take lists.
+Then I found a bug and changed it back to using the DAL. The only untestable error I found was NetworkExceptions.
+>TLDR; Originally built around not using the DAL, then I learned to use mockk.

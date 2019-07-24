@@ -7,7 +7,6 @@
 
 package io.pleo.antaeus.app
 
-import getPaymentProvider
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
@@ -51,9 +50,6 @@ fun main() {
     // Insert example data in the database.
     setupInitialData(dal = dal)
 
-    // Get third parties
-    //  val paymentProvider = getPaymentProvider()
-
     // Create core services
     val invoiceService = InvoiceService(dal = dal)
     val customerService = CustomerService(dal = dal)
@@ -66,19 +62,24 @@ fun main() {
             invoiceService = invoiceService,
             customerService = customerService
     ).run()
+    //Initialize admin console
     userCom(billingService,customerService,invoiceService)
 }
-//Function is used to trigger events
+/*
+Function is used to trigger events via the console.
+ */
 fun userCom(billingService:BillingService, customerService:CustomerService,invoiceService: InvoiceService){
     print("Alpha mode initialized. \n Please enter a command \n (N)-Normal Mode (T)-test (A)abort:" )
     val uinput: String = readLine()!!.toString().toUpperCase()
     if(uinput == "T"){
         billingService.chargeSignal()
-    }else if(uinput =="A"){
+    }
+    else if(uinput =="A"){
         println("Admin has shutdown the server.")
         exitProcess(0)
-    }else if(uinput == "N"){
-        val billingService = BillingService(invoiceService,customerService)
+    }
+    else if(uinput == "N"){
+        @Suppress("NAME_SHADOWING") val billingService = BillingService(invoiceService,customerService)
         normalMode(billingService,customerService, invoiceService)
     }
     else{
@@ -86,21 +87,23 @@ fun userCom(billingService:BillingService, customerService:CustomerService,invoi
         userCom(billingService,customerService,invoiceService)
     }
 }
-//Function iterates through every day and bills on last day
+/*
+Function iterates through every day and bills on last day
+*/
 fun normalMode(billingService:BillingService, customerService:CustomerService,invoiceService: InvoiceService){
     var day = LocalDate.now()
     var year = true
     while(year) {
-        println("Today is $day. ")
+        println("Today is $day.")
         if (day.dayOfMonth == day.lengthOfMonth()) {
             billingService.chargeSignal()
         }
         day = day.plusDays(1)
         Thread.sleep(1000)
-        if(day.dayOfMonth.equals(15)){
+        if(day.dayOfMonth == (15)){
             invoiceService.markAllPending(invoiceService.fetchAll())
         }
-        if(day.dayOfYear.equals(day.lengthOfYear())){
+        if(day.dayOfYear == (day.lengthOfYear())){
             year = false
             userCom(billingService,customerService, invoiceService)
         }

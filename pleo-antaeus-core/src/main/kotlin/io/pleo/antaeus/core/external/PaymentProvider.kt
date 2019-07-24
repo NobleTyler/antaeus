@@ -14,8 +14,6 @@ import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
-import java.lang.Exception
-import java.net.NetworkInterface
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -36,33 +34,49 @@ interface PaymentProvider {
           `NetworkException`: when a network error happens.
      */
     fun  charge(invoice:Invoice,customers:List<Customer>): Boolean {
-       //Pings google to check for network exceptions
-        //TODO FIX THIS so it doesnt make a 1000 requests then fall flat
+        var status = true
+        val customer = customers.find{it.id == invoice.customerId }
+
+        if(customer != null){
+            if (invoice.amount.currency != customer.currency) {
+                throw CurrencyMismatchException(invoiceId = invoice.id, customerId = customer.id)
+            }
+            else if(invoice.status==(InvoiceStatus.PAID)){
+                //TODO should this do something?
+            }
+            else if(!networkFind()){
+                status = networkFind()
+                throw NetworkException()
+            }
+        }
+        else
+            throw CustomerNotFoundException(invoice.customerId)
+
+        return status
+    }
+    /*
+    This method returns true if it is able to ping google. Used in network checking
+     */
+    fun networkFind():Boolean {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
                 .uri(URI.create("https://google.com"))
                 .build()
-        var status = true
+        var status= false
         try {
-         /*   val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-            if(!response.statusCode().equals(200))
-                throw NetworkException()*/
-        }catch (e:Exception){
-           // throw NetworkException()
-           // status = false
-        }
-
-
-        val customer = customers.find{it.id == invoice.customerId }
-        if(customer != null){
-            if (invoice.amount.currency != customer.currency) {
-                throw CurrencyMismatchException(invoiceId = invoice.id, customerId = customer.id)
-            } else if(invoice.status==(InvoiceStatus.PAID)){
+            val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+            println(response.statusCode())
+            if(response.statusCode().toString().contains("unstable")){
                 status = false
+                throw NetworkException()
+            }else{
+                status = true
             }
-        }else
-            throw CustomerNotFoundException(invoice.customerId)
-
+        }catch (e:Exception){
+            status = false
+            throw NetworkException()
+        }
         return status
+
     }
 }
