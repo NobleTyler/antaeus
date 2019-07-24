@@ -9,38 +9,33 @@ import io.pleo.antaeus.models.Invoice
 import mu.KotlinLogging
 import java.io.File
 
-class BillingService(private val invoices: List<Invoice>, private val customers: List<Customer>):PaymentProvider {
+class BillingService(private val invoiceService:InvoiceService, private val customerService: CustomerService):PaymentProvider {
     private val logger = KotlinLogging.logger("billingService")
+    private var invoices = invoiceService.fetchAll()
+    private   var customers= customerService.fetchAll()
 
-
+ //Works by charging each invoice in a for each loop and doing error handling beyond the parent class
     fun chargeSignal():Boolean{
         var status = true
-        var success = StringBuilder()
-        var failed = StringBuilder()
+        //This is required for normal mode inorder to refresh
+        invoices = invoiceService.fetchAll()
+        customers = customerService.fetchAll()
 
-        var pf= File("PaymentFailures.txt").bufferedWriter()
-        var ps =File("PaymentSuccess.txt").bufferedWriter()
-        failed.append("List of failed billings below:")
-        success.append("List of successful billings below")
         invoices.forEach{
             try {
-                charge(it,customers)
-                success.append(it.id,it.customerId)
+                if(charge(it,customers))
+                    invoiceService.markPaid(it)
             }
             catch (e :CurrencyMismatchException){
-                failed.append(it.id,it.customerId)
                 status = false
                 logger.error { "Currency's where mismatched on ${it.id}" }
             }catch (e : CustomerNotFoundException){
-                failed.append(it.id,it.customerId)
                 status = false
                 logger.error { "Customer was not found on ${it.id}" }
             }catch (e :NetworkException){
-                failed.append(it.id,it.customerId)
                 status = false
                 logger.error { "Network unstable on transaction ${it.id}" }
             }catch (e :Exception){
-                failed.append(it.id,it.customerId)
                 status = false
                 logger.error { "${e.cause}" }
             }
@@ -48,10 +43,8 @@ class BillingService(private val invoices: List<Invoice>, private val customers:
         if(status)
             println("Charge complete")
         else
-            println("Not all charges complete! \n Please see error files to find which transactions failed.")
+            println("Not all charges complete!")
 
-        pf.write(failed.toString())
-        ps.write(success.toString())
         return status
     }
 

@@ -52,55 +52,57 @@ fun main() {
     setupInitialData(dal = dal)
 
     // Get third parties
-            // val paymentProvider = getPaymentProvider()
+    //  val paymentProvider = getPaymentProvider()
 
     // Create core services
     val invoiceService = InvoiceService(dal = dal)
     val customerService = CustomerService(dal = dal)
 
     // This is _your_ billing service to be included where you see fit
-    var customers = customerService.fetchAll().toList()
-    var invoices = invoiceService.fetchAll().toList()
-    val billingService = BillingService(invoices,customers)
+    val billingService = BillingService(invoiceService,customerService)
 
     // Create REST web service
     AntaeusRest(
             invoiceService = invoiceService,
             customerService = customerService
     ).run()
-    userCom(billingService)
+    userCom(billingService,customerService,invoiceService)
 }
 //Function is used to trigger events
-fun userCom(billingService:BillingService){
+fun userCom(billingService:BillingService, customerService:CustomerService,invoiceService: InvoiceService){
     print("Alpha mode initialized. \n Please enter a command \n (N)-Normal Mode (T)-test (A)abort:" )
-    var uinput: String = readLine()!!.toString().toUpperCase()
+    val uinput: String = readLine()!!.toString().toUpperCase()
     if(uinput == "T"){
         billingService.chargeSignal()
     }else if(uinput =="A"){
         println("Admin has shutdown the server.")
         exitProcess(0)
     }else if(uinput == "N"){
-        normalMode(billingService)
+        val billingService = BillingService(invoiceService,customerService)
+        normalMode(billingService,customerService, invoiceService)
     }
     else{
         println("I'm sorry that command is unavailable at the moment.")
-        userCom(billingService)
+        userCom(billingService,customerService,invoiceService)
     }
 }
 //Function iterates through every day and bills on last day
-fun normalMode(billingService: BillingService){
+fun normalMode(billingService:BillingService, customerService:CustomerService,invoiceService: InvoiceService){
     var day = LocalDate.now()
     var year = true
-    while( year == true) {
+    while(year) {
         println("Today is $day. ")
-        if (day.dayOfMonth.equals(day.lengthOfMonth())) {
+        if (day.dayOfMonth == day.lengthOfMonth()) {
             billingService.chargeSignal()
         }
         day = day.plusDays(1)
         Thread.sleep(1000)
+        if(day.dayOfMonth.equals(15)){
+            invoiceService.markAllPending(invoiceService.fetchAll())
+        }
         if(day.dayOfYear.equals(day.lengthOfYear())){
             year = false
-            userCom(billingService)
+            userCom(billingService,customerService, invoiceService)
         }
     }
 

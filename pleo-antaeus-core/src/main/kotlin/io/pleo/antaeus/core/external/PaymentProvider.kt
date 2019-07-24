@@ -16,8 +16,13 @@ import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
 import java.lang.Exception
 import java.net.NetworkInterface
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 
 interface PaymentProvider {
+
     /*
         Charge a customer's account the amount from the invoice.
 
@@ -31,21 +36,30 @@ interface PaymentProvider {
           `NetworkException`: when a network error happens.
      */
     fun  charge(invoice:Invoice,customers:List<Customer>): Boolean {
+       //Pings google to check for network exceptions
+        //TODO FIX THIS so it doesnt make a 1000 requests then fall flat
+        val client = HttpClient.newBuilder().build()
+        val request = HttpRequest.newBuilder()
+                .uri(URI.create("https://google.com"))
+                .build()
         var status = true
+        try {
+         /*   val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+            if(!response.statusCode().equals(200))
+                throw NetworkException()*/
+        }catch (e:Exception){
+           // throw NetworkException()
+           // status = false
+        }
+
+
         val customer = customers.find{it.id == invoice.customerId }
-        var networkError = false //TODO actually detect network errors
         if(customer != null){
-        if (!invoice.amount.currency.equals(customer.currency)) {
-            throw CurrencyMismatchException(invoiceId = invoice.id, customerId = customer.id)
-        } else if (networkError) {
-            throw NetworkException()
-        } else if(invoice.status.equals(InvoiceStatus.PAID)){
-            status = false
-        }
-        else{
-            invoice.status.apply { InvoiceStatus.PAID }
-            println("Yo this is charge we hit this right?")
-        }
+            if (invoice.amount.currency != customer.currency) {
+                throw CurrencyMismatchException(invoiceId = invoice.id, customerId = customer.id)
+            } else if(invoice.status==(InvoiceStatus.PAID)){
+                status = false
+            }
         }else
             throw CustomerNotFoundException(invoice.customerId)
 

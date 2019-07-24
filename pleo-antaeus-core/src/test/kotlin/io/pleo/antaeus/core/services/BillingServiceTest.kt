@@ -1,5 +1,6 @@
 package io.pleo.antaeus.core.services
 
+import io.mockk.MockKException
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkClass
@@ -7,49 +8,88 @@ import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.*
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class BillingServiceTest {
-    //lateinit variables are to be initialized on a per test basis.
-    private lateinit var dal : AntaeusDal
-
     private lateinit var billingService :BillingService
 
     var invoice = Invoice(id = 1,customerId = 1,amount = Money(131.66.toBigDecimal(),currency = Currency.SEK),status = InvoiceStatus.PENDING)
     var customer = Customer(id = 1,currency = Currency.SEK)
-    var invoices = listOf(invoice)
-    var customers = listOf(customer)
+    lateinit  var invoiceService : InvoiceService
+    lateinit  var customerService : CustomerService
     @Test
-    fun `will throw if billing is not found`() {
-                assertThrows<UninitializedPropertyAccessException> {
+    fun `billing not found test`() {
+        assertThrows<UninitializedPropertyAccessException> {
             billingService.charge(invoice, listOf(Customer(0,Currency.SEK)))
         }
     }
     @Test
-    fun `everything works?`(){
-        print(invoice.status)
-        billingService = BillingService(listOf(invoice), listOf(customer))
-        assertTrue(billingService.chargeSignal())
-        print(invoice.status)
+    fun `already paid test`(){
+        invoice = Invoice(id = 1,customerId = 1,amount = Money(131.66.toBigDecimal(),currency = Currency.SEK),status = InvoiceStatus.PAID)
+        val dal = mockk<AntaeusDal>{
+            every { fetchInvoices() } returns listOf(invoice)
+            every { fetchCustomers() } returns listOf(customer)
+        }
+        customerService= CustomerService(dal)
+        invoiceService=InvoiceService(dal)
+        billingService = BillingService(invoiceService, customerService)
+        assertFalse(billingService.charge(invoice,customerService.fetchAll()))
+        }
+        @Test
+    fun `proper conditions test`(){
+        val dal = mockk<AntaeusDal>{
+        every { fetchInvoices() } returns listOf(invoice)
+        every { fetchCustomers() } returns listOf(customer)
+    }
+        customerService= CustomerService(dal)
+        invoiceService=InvoiceService(dal)
+        billingService = BillingService(invoiceService, customerService)
+        assertTrue(billingService.charge(invoice,customerService.fetchAll()))
     }
     @Test
     fun `CurrencyMismatchException test`(){
-        val invoice = Invoice(id = 1,customerId = 1,amount = Money(131.66.toBigDecimal(),currency = Currency.SEK),status = InvoiceStatus.PENDING)
-        val customers = listOf(Customer(id = 1,currency = Currency.DKK))
-        billingService = BillingService(listOf(invoice), listOf(customer))
+        val invoice = Invoice(id = 1,customerId = 1,amount = Money(131.66.toBigDecimal(),currency = Currency.DKK),status = InvoiceStatus.PENDING)
+        val dal = mockk<AntaeusDal>{
+            every { fetchInvoices() } returns listOf(invoice)
+            every { fetchCustomers() } returns listOf(customer)
+        }
+        customerService= CustomerService(dal)
+        invoiceService=InvoiceService(dal)
+        billingService = BillingService(invoiceService, customerService)
         assertThrows<CurrencyMismatchException> {
-            billingService.charge(invoice,customers)
+            billingService.charge(invoice,customerService.fetchAll())
         }
     }
     @Test
     fun  `CustomerNotFoundException test`(){
-        val invoices = listOf(invoice)
-        val customers = emptyList<Customer>()
-        billingService = BillingService(invoices, customers )
+        val dal = mockk<AntaeusDal>{
+            every { fetchInvoices() } returns listOf(invoice)
+            every { fetchCustomers() } returns emptyList()
+        }
+        customerService= CustomerService(dal)
+        invoiceService=InvoiceService(dal)
+        billingService = BillingService(invoiceService, customerService )
+
         assertThrows<CustomerNotFoundException> {
-            billingService.charge(invoice,customers)
+            billingService.charge(invoice,customerService.fetchAll())
         }
     }
+        @Test
+        fun  `No invoices test`(){
+            val dal = mockk<AntaeusDal>{
+                every { fetchInvoices() } returns emptyList()
+                every { fetchCustomers() } returns emptyList()
+            }
+            customerService= CustomerService(dal)
+            invoiceService=InvoiceService(dal)
+            billingService = BillingService(invoiceService, customerService )
+
+            assertThrows<CustomerNotFoundException> {
+                billingService.charge(invoice,customerService.fetchAll())
+            }
+    }
+
 }
