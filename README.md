@@ -76,3 +76,8 @@ It has added benefits of catching thrown exceptions as well and increased error 
 Testing was all done in Junit. Originally I had implemented testing such that it wouldn't need mocks and would just take lists.
 Then I found a bug and changed it back to using the DAL. The only untestable error I found was NetworkExceptions.
 >TLDR; Originally built around not using the DAL, then I learned to use mockk.
+
+# Total Time
+#### 11 hours 26 minutes
+
+> Specific hours can be checked in WorkTime.csv
