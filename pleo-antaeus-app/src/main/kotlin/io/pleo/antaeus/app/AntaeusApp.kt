@@ -52,14 +52,16 @@ fun main() {
     setupInitialData(dal = dal)
 
     // Get third parties
-    val paymentProvider = getPaymentProvider()
+            // val paymentProvider = getPaymentProvider()
 
     // Create core services
     val invoiceService = InvoiceService(dal = dal)
     val customerService = CustomerService(dal = dal)
 
     // This is _your_ billing service to be included where you see fit
-    val billingService = BillingService(invoiceService,customerService)
+    var customers = customerService.fetchAll().toList()
+    var invoices = invoiceService.fetchAll().toList()
+    val billingService = BillingService(invoices,customers)
 
     // Create REST web service
     AntaeusRest(

@@ -32,11 +32,10 @@ interface PaymentProvider {
      */
     fun  charge(invoice:Invoice,customers:List<Customer>): Boolean {
         var status = true
-        val customer = customers.get(invoice.customerId)
+        val customer = customers.find{it.id == invoice.customerId }
         var networkError = false //TODO actually detect network errors
-        if (!customers.contains(customer)) {
-            throw CustomerNotFoundException(customer.id)
-        } else if (!invoice.amount.currency.equals(customer.currency)) {
+        if(customer != null){
+        if (!invoice.amount.currency.equals(customer.currency)) {
             throw CurrencyMismatchException(invoiceId = invoice.id, customerId = customer.id)
         } else if (networkError) {
             throw NetworkException()
@@ -45,7 +44,11 @@ interface PaymentProvider {
         }
         else{
             invoice.status.apply { InvoiceStatus.PAID }
+            println("Yo this is charge we hit this right?")
         }
+        }else
+            throw CustomerNotFoundException(invoice.customerId)
+
         return status
     }
 }
