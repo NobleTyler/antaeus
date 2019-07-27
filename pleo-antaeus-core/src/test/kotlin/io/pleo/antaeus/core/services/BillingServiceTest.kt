@@ -1,14 +1,11 @@
 package io.pleo.antaeus.core.services
 
-import io.mockk.MockKException
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkClass
 import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.*
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -36,7 +33,7 @@ class BillingServiceTest {
         customerService= CustomerService(dal)
         invoiceService=InvoiceService(dal)
         billingService = BillingService(invoiceService, customerService)
-        assertFalse(billingService.charge(invoice,customerService.fetchAll()))
+        assertTrue(billingService.charge(invoice,customerService.fetchAll()))
         }
         @Test
     fun `proper conditions test`(){

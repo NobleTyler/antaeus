@@ -65,7 +65,6 @@ interface PaymentProvider {
         var status= false
         try {
             val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-            println(response.statusCode())
             if(response.statusCode().toString().contains("unstable")){
                 status = false
                 throw NetworkException()

@@ -63,29 +63,40 @@ fun main() {
             customerService = customerService
     ).run()
     //Initialize admin console
+    Thread.sleep(3000)
     userCom(billingService,customerService,invoiceService)
 }
 /*
 Function is used to trigger events via the console.
  */
 fun userCom(billingService:BillingService, customerService:CustomerService,invoiceService: InvoiceService){
-    print("Alpha mode initialized. \n Please enter a command \n (N)-Normal Mode (T)-test (A)abort:" )
-    val uinput: String = readLine()!!.toString().toUpperCase()
-    if(uinput == "T"){
-        billingService.chargeSignal()
-    }
-    else if(uinput =="A"){
-        println("Admin has shutdown the server.")
-        exitProcess(0)
-    }
-    else if(uinput == "N"){
-        @Suppress("NAME_SHADOWING") val billingService = BillingService(invoiceService,customerService)
-        normalMode(billingService,customerService, invoiceService)
-    }
-    else{
-        println("I'm sorry that command is unavailable at the moment.")
-        userCom(billingService,customerService,invoiceService)
-    }
+    //This works in IntelliJ
+    var uinput: String = readLine().toString().toUpperCase()
+    if(uinput !="NULL" ){
+        print("Alpha mode initialized. \n Please enter a command \n (N)-Normal Mode (T)-test (A)abort:")
+        if(uinput == "T"){
+            billingService.chargeSignal()
+        }
+        else if(uinput =="A"){
+            println("Admin has shutdown the server.")
+            exitProcess(0)
+        }
+        else if(uinput == "N"){
+            @Suppress("NAME_SHADOWING") val billingService = BillingService(invoiceService,customerService)
+            normalMode(billingService,customerService, invoiceService)
+        }
+        else if(uinput!="" ){
+            println("I'm sorry that command is unavailable at the moment. You entered $uinput")
+
+            userCom(billingService,customerService,invoiceService)
+        }
+    }else
+        {
+            println("Docker Mode initialized, to gain access to commands like test please use a non-terminal environment e.g Intellij")
+            @Suppress("NAME_SHADOWING") val billingService = BillingService(invoiceService,customerService)
+            normalMode(billingService,customerService, invoiceService)
+        }
+
 }
 /*
 Function iterates through every day and bills on last day

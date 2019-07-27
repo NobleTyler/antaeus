@@ -61,6 +61,8 @@ Admin interaction is done through the console in this iteration.
 While alternatives like using restful routes or creating a front end could be used the CLI was both quick to implement and decidedly more secure.
 The console is likely only seen by administrators and it us unlikely somebody accidentally charge by going to a Restful-URL (I'm looking at you chrome autocomplete) or Front-End interface.
 As well there are modes for easily shutting down the server, as well as testing charges and performing Normal operations where users are charged on a per month basis.
+
+Please note that when running via CLI normal mode is assumed.
 >TLDR; I used a CLI for safety reasons and ease of development.
 ### Payment Provider
 Payment provider is an abstract class which is the parent of BillingTest. The purpose of which serves to deal with error handling for customer/invoice
