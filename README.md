@@ -55,6 +55,18 @@ Happy hacking 😁!
 * [Mockk](https://mockk.io/) - Mocking library
 
 ## Design Decisions
+### What we liked:
+Great commits and git history,
+The documentation with thoughts about the design,
+The tests with mocks
+
+### What we needed more of:
+We realise that this implementation may have taken a lot of time to be made given its complexity however there was a misunderstanding about the point of the challenge. In particular the role of the paymentProvider, which you implement even though it is a third party code. There was also confusion of the role of the 3rd party code and our code.
+A simplified use of the billing service would have resulted to a less confusing implementation. The billing service was used in a complicated way over CLI which may have problems working in production with the invoices being billed on last day of the month instead of first day yet they are marked as pending on the 15th of every month.
+We would have loved to see you showcase injecting dependencies, coroutines, scheduling and more documentation.
+We would have loved to see more justification with CLI interactions (REST not safe?)
+Documenting about any future improvements.
+Justification or pitfalls of using the list of customer in memory, the use of CLI which is not usable in a production deployment
 
 ### Admin Interaction
 Admin interaction is done through the console in this iteration. 
